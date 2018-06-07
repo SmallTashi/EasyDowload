@@ -28,6 +28,7 @@ public class MyService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
         //在启动Service的时候 所需要进行的操作
         Log.d("MyService", "onStartCommand executed");
         return super.onStartCommand(intent, flags, startId);

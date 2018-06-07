@@ -41,8 +41,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.d("MyApp", "OnCreate");
         start.setOnClickListener(this);
         TextView stop = findViewById(R.id.test_stop);
-        TextView intentSer = findViewById(R.id.test_intent_service);
-        intentSer.setOnClickListener(this);
+//        TextView intentSer = findViewById(R.id.test_intent_service);
+//        intentSer.setOnClickListener(this);
         stop.setOnClickListener(this);
         TextView bindButton = findViewById(R.id.test_bind);
         TextView unbindButton = findViewById(R.id.test_unbind);
@@ -53,11 +53,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.test_intent_service:
-                Log.d("MyMainActvity","Thread id is"+Thread.currentThread().getId());
-                Intent intentService = new Intent(this,MyIntentService.class);
-                startService(intentService);
-                break;
+//            case R.id.test_intent_service:
+//                Log.d("MyMainActvity","Thread id is"+Thread.currentThread().getId());
+//                Intent intentService = new Intent(this,MyIntentService.class);
+//                startService(intentService);
+//                break;
             case R.id.test_start:
                 startIntent = new Intent(this, MyService.class);
                 startService(startIntent);
