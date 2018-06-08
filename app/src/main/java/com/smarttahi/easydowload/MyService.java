@@ -118,11 +118,6 @@ public class MyService extends Service {
             getNotificationManager().cancel(1);
             stopForeground(true);
         }
-
-        public int getProgress(){
-    //TODO 返回进度
-            return 0;
-        }
     }
 
 

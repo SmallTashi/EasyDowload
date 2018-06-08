@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.net.MalformedURLException;
 
 public class DownloadTask extends AsyncTask<String, Integer, Integer> {
     private static final int SUCCESS = 0;
@@ -158,20 +159,25 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
 
     protected Integer doInBackground(String... strings) {
 
-        HttpsRequest request = new HttpsRequest(message.getDownloadURL());
-        //TODO 请求网络，执行文件下载操作，并返回状态参数
-        request.beginDownload(message, new HttpsRequest.Callback() {
-            @Override
-            public void onSuccess(InputStream inputStream) {
-               status= saveFile(inputStream);
-            }
+        HttpsRequest request = null;
+        try {
+            request = new HttpsRequest(message.getDownloadURL());
+            request.beginDownload(message, new HttpsRequest.Callback() {
+                @Override
+                public void onSuccess(InputStream inputStream) {
+                    status= saveFile(inputStream);
+                }
 
-            @Override
-            public void onFiled(Exception e) {
-                status = FAILED;
-            }
-        });
+                @Override
+                public void onFiled(Exception e) {
+                    status = FAILED;
+                }
+            });
 
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            status=FAILED;
+        }
         if (isPaused) {
             return PAUSE;
         }

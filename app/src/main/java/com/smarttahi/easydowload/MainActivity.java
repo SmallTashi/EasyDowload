@@ -56,7 +56,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             downloadBinder = (MyService.DownloadBinder)service;
-            currentProgress = downloadBinder.getProgress();
         }
 
         @Override
