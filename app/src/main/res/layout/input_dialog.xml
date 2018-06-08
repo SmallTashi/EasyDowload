@@ -1,16 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dialog"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
 
-    <android.support.design.widget.TextInputEditText
+    <TextView
+        android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/input"
-        android:padding="10dp"
+        android:layout_marginBottom="30dp"
+        android:layout_marginTop="40dp"
+        android:alpha="0.87"
         android:fontFamily="casual"
-        android:textColor="#243B55"
-        android:textSize="16sp"
-        android:textStyle="normal" />
-</RelativeLayout>
+        android:gravity="center"
+        android:text="@string/get_message"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="25sp" />
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_marginTop="5dp"
+        android:alpha="0.87"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/edit_file_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:fontFamily="casual"
+            android:hint="@string/url"
+            android:padding="10dp"
+            android:textColor="#ffffff"
+            android:textColorHint="#C0C0C0"
+            android:textSize="18sp"
+            android:inputType="textUri" />
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:alpha="0.87">
+
+        <EditText
+            android:id="@+id/edit_file_path"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:drawablePadding="5dp"
+            android:fontFamily="casual"
+            android:hint="@string/path"
+            android:inputType="text"
+            android:maxLines="2"
+            android:padding="10dp"
+            android:textColor="#000000"
+            android:textColorHint="#C0C0C0"
+            android:textSize="18sp" />
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:alpha="0.87">
+
+        <EditText
+            android:id="@+id/edit_file_name"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:drawablePadding="5dp"
+            android:fontFamily="casual"
+            android:hint="@string/name"
+            android:inputType="number"
+            android:padding="10dp"
+            android:textColor="#000000"
+            android:textColorHint="#C0C0C0"
+            android:textSize="18sp" />
+    </android.support.design.widget.TextInputLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:weightSum="2"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/back"
+            style="?android:attr/actionButtonStyle"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:alpha="0.87"
+            android:background="@null"
+            android:fontFamily="casual"
+            android:visibility="invisible"
+            android:gravity="center_vertical"
+            android:text="@string/Cancel"
+            android:textSize="18sp" />
+
+    </LinearLayout>
+
+
+
+
+</LinearLayout>

@@ -1,9 +1,15 @@
 <resources>
     <string name="app_name">EasyDowload</string>
-    <string name="service_start">启动Service</string>
-    <string name="service_stop">停止Service</string>
-    <string name="service_unbind">解绑Service</string>
-    <string name="service_bind">绑定Service</string>
+    <string name="service_start">Start</string>
+    <string name="service_stop">Cancel</string>
+    <string name="service_unbind">Pause</string>
+    <string name="service_bind">Cancel</string>
     <string name="service_intent">跳转Service</string>
     <string name="input">Please Input Something</string>
+    <string name="Do">Test</string>
+    <string name="Cancel">Cancel</string>
+    <string name="name">Please input file name</string>
+    <string name="path">Please input file save path</string>
+    <string name="url">Please input download URL</string>
+    <string name="get_message">Please complete fallowing message</string>
 </resources>

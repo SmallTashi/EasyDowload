@@ -1,29 +1,62 @@
 package com.smarttahi.easydowload;
 
+import android.Manifest;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-    private MyService.DownloadBinder downloadBinder = new MyService.DownloadBinder();
+public class MainActivity extends AppCompatActivity implements View.OnClickListener,DialogInterface.OnClickListener {
+    private MyService.DownloadBinder downloadBinder ;
     private FloatingActionButton ChangeState;
-    private Intent bindIntent;
-    private Intent stopIntent;
-    Intent startIntent;
+    private int currentProgress;
+    private EditText fileName;
+    private EditText filePath;
+    private EditText fileUrl;
+    private ProgressBar progressBar;
+    private TextView cancel;
+   private TextView start;
+   private TextView test;
+    private TextView pause;
+    private String name = "";
+    private String path = "";
+    private String url = "";
+
+    AlertDialog.Builder builder;
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (null != this.getCurrentFocus()) {
+            InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            assert inputMethodManager != null;
+            return inputMethodManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
+        }
+        return super.onTouchEvent(event);
+    }
+
     private ServiceConnection connection = new ServiceConnection() {
+
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            downloadBinder = (MyService.DownloadBinder) service;
-            downloadBinder.startService();
-            downloadBinder.getProgress();
+            downloadBinder = (MyService.DownloadBinder)service;
+            currentProgress = downloadBinder.getProgress();
         }
 
         @Override
@@ -35,57 +68,106 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        TextView start = findViewById(R.id.test_start);
-        ChangeState = findViewById(R.id.floatingActionButton);
+        int permission = ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if(permission==PackageManager.PERMISSION_DENIED){
+            ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+        }
+        findView();
+        builder = new AlertDialog.Builder(this);
+
+        Intent intent = new Intent(this,MyService.class);
+        startService(intent);
+        bindService(intent, connection, BIND_AUTO_CREATE);    //绑定服务
+
+        fileUrl = new EditText(this);
+        fileName = new EditText(this);
+        filePath = new EditText(this);
+
+        name =fileName.getText().toString();
+        path =filePath.getText().toString();
+        url = fileUrl.getText().toString();
+
+
         ChangeState.setOnClickListener(this);
         Log.d("MyApp", "OnCreate");
         start.setOnClickListener(this);
-        TextView stop = findViewById(R.id.test_stop);
-//        TextView intentSer = findViewById(R.id.test_intent_service);
-//        intentSer.setOnClickListener(this);
-        stop.setOnClickListener(this);
-        TextView bindButton = findViewById(R.id.test_bind);
-        TextView unbindButton = findViewById(R.id.test_unbind);
-        bindButton.setOnClickListener(this);
-        unbindButton.setOnClickListener(this);
+        test.setOnClickListener(this);
+        pause.setOnClickListener(this);
+        cancel.setOnClickListener(this);
+        progressBar.setProgress(currentProgress);
+        if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+        }
+    }
+
+    private void findView(){
+        test =findViewById(R.id.test);
+        fileUrl = findViewById(R.id.edit_file_url);
+        filePath =findViewById(R.id.edit_file_path);
+        fileName = findViewById(R.id.edit_file_name);
+        progressBar=findViewById(R.id.progressBar);
+        start = findViewById(R.id.test_start);
+        ChangeState = findViewById(R.id.floatingActionButton);
+        pause = findViewById(R.id.test_pause);
+        cancel = findViewById(R.id.test_cancel);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-//            case R.id.test_intent_service:
-//                Log.d("MyMainActvity","Thread id is"+Thread.currentThread().getId());
-//                Intent intentService = new Intent(this,MyIntentService.class);
-//                startService(intentService);
-//                break;
+
             case R.id.test_start:
-                startIntent = new Intent(this, MyService.class);
-                startService(startIntent);
-                break;
-            case R.id.test_stop:
-                if(startIntent ==null){
-                    Toast.makeText(this,"UnStart",Toast.LENGTH_SHORT).show();
+                if(MyApplication.getMessage()!=null){
+                    downloadBinder.startDownload(MyApplication.getMessage());
                 }
-                stopIntent = new Intent(this, MyService.class);
-                stopService(stopIntent);
+                else {
+                    Toast.makeText(this,"Please add downloadMessage",Toast.LENGTH_SHORT).show();
+                }
+
                 break;
-            case R.id.test_bind:
-                bindIntent = new Intent(this, MyService.class);
-                bindService(bindIntent, connection, BIND_AUTO_CREATE);    //绑定服务
+
+            case R.id.test:
+                downloadBinder.startDownload(MyApplication.getAutoMessage());
                 break;
-            case R.id.test_unbind:
-                if(bindIntent == null){
-                    Toast.makeText(this,"Unbind",Toast.LENGTH_SHORT).show();
+            case R.id.test_pause:
+                if(MyApplication.getMessage()==null){
+                    Toast.makeText(this,"Please add downloadMessage",Toast.LENGTH_SHORT).show();
                 }else {
-                    unbindService(connection);
+                    downloadBinder.pauseDownload();
+                }
+
+                break;
+            case R.id.test_cancel:
+                if(MyApplication.getMessage()==null){
+                    Toast.makeText(this,"Please add downloadMessage",Toast.LENGTH_SHORT).show();
+
+                }else {
+                    downloadBinder.cancelDownload();
                 }
 
                 break;
             case R.id.floatingActionButton:
-                Toast.makeText(this,"Add",Toast.LENGTH_SHORT).show();
-                //TODO create a dialog for new download task
+                Toast.makeText(this, "Add", Toast.LENGTH_SHORT).show();
+                builder.setView(R.layout.input_dialog)
+                        .setPositiveButton(R.string.Do,this)
+                        .setNegativeButton(R.string.Cancel,this)
+                        .create();
+                builder.show();
             default:
                 break;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode){
+            case 1:
+                if(grantResults.length>0&&grantResults[0]!=PackageManager.PERMISSION_GRANTED){
+                    Toast.makeText(this,"拒绝权限将无法使用程序",Toast.LENGTH_LONG).show();
+                    finish();
+                }
+                break;
+                default:
         }
     }
 
@@ -118,6 +200,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.d("MyApp", "onDestroy");
+        unbindService(connection);
+    }
+
+
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+        switch (which){
+            case DialogInterface.BUTTON_POSITIVE:
+                if(url!=null&&name!=null&&path!=null) {
+                    if (MyApplication.getMessage() == null) {
+                        DownloadMessage message = new DownloadMessage();
+                        message.setDownloadURL(url);
+                        message.setName(name);
+                        message.setPath(path);
+                        MyApplication.setMessage(message);
+                    }else {
+                        downloadBinder.startDownload(MyApplication.getMessage());
+                    }
+                }else {
+                    Toast.makeText(this,"Please complete downloadMessage",Toast.LENGTH_SHORT).show();
+                }
+                break;
+                case DialogInterface.BUTTON_NEGATIVE:
+                    Toast.makeText(this,"Cancel downloadTask",Toast.LENGTH_SHORT).show();
+
+        }
     }
 }
