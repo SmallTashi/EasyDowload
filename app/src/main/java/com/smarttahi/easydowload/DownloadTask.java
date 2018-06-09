@@ -100,14 +100,13 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
      */
 
     private int saveFile(InputStream inputStream) {
-
+        file = new File(message.getName());
         BufferedInputStream bis = null;
         if(message.getContentLen()==0){
             return  FAILED;
         }else if(message.getContentLen()==message.getCompletedLen()){
             return SUCCESS;
-        }else {
-            file = new File(message.getName());
+        }
             byte[] buffer = new byte[1024 * 2];
             try {
                 saveFile = new RandomAccessFile(file, "rwd");
@@ -160,7 +159,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
                     e.printStackTrace();
                 }
             }
-        }
+
         return FAILED;
     }
 

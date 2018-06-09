@@ -16,43 +16,15 @@ class InternetRequest {
 
     private static OutputStream out = null;
 
-    private HttpsURLConnection connectionHttps = null;
-
     private HttpURLConnection connectionHttp = null;
 
     InternetRequest(String downloadURL) throws MalformedURLException {
         URL url = new URL(downloadURL);
         try {
-            if (downloadURL.startsWith("https:"))
-            {
-                connectionHttps = (HttpsURLConnection) url.openConnection();
-            } else {
-                connectionHttp = (HttpURLConnection) url.openConnection();
-            }
+            connectionHttp = (HttpURLConnection) url.openConnection();
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public void beginDownload(DownloadMessage message, Callback callback) {
-        if (message.getContentLen() == 0) {
-            if(connectionHttp==null){
-                message.setContentLen(Long.parseLong(connectionHttps.getHeaderField("content-length")));
-                Download(connectionHttps,callback);
-            }else {
-                message.setContentLen(Long.parseLong(connectionHttp.getHeaderField("content-length")));
-                Download(connectionHttp,callback);
-            }
-        } else {
-            if(connectionHttp==null){
-                connectionHttps.setRequestProperty("Range", "bytes=" + message.getCompletedLen() + "-" + message.getContentLen());
-                Download(connectionHttps,callback);
-            }else {
-                connectionHttp.setRequestProperty("Range", "bytes=" + message.getCompletedLen() + "-" + message.getContentLen());
-                Download(connectionHttp,callback);
-            }
-        }
-
     }
 
     private void Download(final HttpURLConnection conn, final Callback callback) {
@@ -97,48 +69,13 @@ class InternetRequest {
     }
 
 
-
-    private void Download(final HttpsURLConnection conn, final Callback callback) {
-        try {
-            conn.setReadTimeout(5 * 1000);
-            conn.setConnectTimeout(10 * 1000);
-            conn.setRequestMethod("GET");
-            conn.connect();
-            if (conn.getResponseCode() == 200) {
-
-                try {
-
-                    callback.onSuccess(conn.getInputStream());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    callback.onFiled(e);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                //使用回调，返回请求得到的数据
-
-            } else {
-                callback.onFiled(new Exception("网络连接失败"));
-            }
-        } catch (final ProtocolException e) {
-
-            callback.onFiled(e);
-        } catch (final IOException e) {
-            e.printStackTrace();
-
-            callback.onFiled(e);
-        } finally {
-            if (conn != null) {
-                conn.disconnect();
-            }
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+    public void beginDownload(DownloadMessage message, Callback callback) {
+        if (message.getContentLen() == 0) {
+            message.setContentLen(Long.parseLong(connectionHttp.getHeaderField("content-length")));
+        } else {
+            connectionHttp.setRequestProperty("Range", "bytes=" + message.getCompletedLen() + "-" + message.getContentLen());
         }
+        Download(connectionHttp, callback);
     }
 
 
