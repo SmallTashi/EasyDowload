@@ -16,7 +16,6 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
     private static final int PAUSE = 2;
     private static final int CANCEL = 3;
     private StateListener listener;
-    private int lastProgress;
     private DownloadMessage message;
     private int status;
     File file = null;
@@ -38,10 +37,11 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
     @Override
     protected void onProgressUpdate(Integer... values) {
         int progress = values[0];
-        if (progress > lastProgress) {
-            listener.onProgress(progress);
-            lastProgress = progress;
-        }
+//        if (progress > lastProgress) {
+//            listener.onProgress(progress);
+//            lastProgress = progress;
+//        }
+        listener.onProgress(progress);
     }
 
     /**
@@ -100,14 +100,14 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
      */
 
     private int saveFile(InputStream inputStream) {
-        file = new File(message.getName());
+        file = new File(message.getPath(),"123.mp3");
+        byte[] buffer = new byte[1024 * 2];
         BufferedInputStream bis = null;
         if(message.getContentLen()==0){
             return  FAILED;
         }else if(message.getContentLen()==message.getCompletedLen()){
             return SUCCESS;
         }
-            byte[] buffer = new byte[1024 * 2];
             try {
                 saveFile = new RandomAccessFile(file, "rwd");
                 int len = 0;
@@ -122,7 +122,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
                     }
                     saveFile.write(buffer, 0, len);
                     message.setCompletedLen(message.getCompletedLen() + len);
-                    lastProgress = (int) (message.getCompletedLen() * 100 / message.getContentLen());
+                    int lastProgress = (int) (message.getCompletedLen() * 100 / message.getContentLen());
                     publishProgress(lastProgress);
                 }
 

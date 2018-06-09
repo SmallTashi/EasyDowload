@@ -39,28 +39,6 @@
             android:inputType="textUri" />
     </android.support.design.widget.TextInputLayout>
 
-    <android.support.design.widget.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-  >
-
-        <EditText
-            android:id="@+id/edit_file_path"
-
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:drawablePadding="5dp"
-            android:fontFamily="casual"
-            android:hint="@string/path"
-            android:inputType="text"
-            android:maxLines="2"
-            android:padding="10dp"
-            android:textColor="#000000"
-            android:textColorHint="#000000"
-            android:textSize="18sp" />
-    </android.support.design.widget.TextInputLayout>
 
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"

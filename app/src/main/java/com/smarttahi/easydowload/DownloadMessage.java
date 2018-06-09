@@ -1,8 +1,10 @@
 package com.smarttahi.easydowload;
 
+import android.os.Environment;
+
 public class DownloadMessage {
     private String downloadURL = null ;
-    private String path = null;
+    private String path = Environment.getExternalStorageDirectory().getPath();
     private String name = null;
     private long contentLen = 0;
 
@@ -26,9 +28,6 @@ public class DownloadMessage {
         return path;
     }
 
-    public void setPath(String path) {
-        this.path = path;
-    }
 
     public String getName() {
         return name;

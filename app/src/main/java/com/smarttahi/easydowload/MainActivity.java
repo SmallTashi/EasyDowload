@@ -35,7 +35,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private FloatingActionButton ChangeState;
     private int currentProgress;
     private EditText fileName;
-    private EditText filePath;
     private EditText fileUrl;
     private ProgressBar progressBar;
     private TextView cancel;
@@ -43,7 +42,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView test;
     private TextView pause;
     private String name = "";
-    private String path = "";
     private String url = "";
 
     public static List<DownloadMessage> list = null;
@@ -64,6 +62,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             downloadBinder = (MyService.DownloadBinder) service;
+            downloadBinder.setListener(new MyService.Listener() {
+                @Override
+                public void onFinish() {
+                    Log.e("zzz","finish");
+                }
+                @Override
+                public void onDownload(int progress) {
+                    Log.e("zzz","progress"+progress);
+                    progressBar.setProgress(progress);
+                }
+            });
         }
 
         @Override
@@ -88,10 +97,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         fileUrl = new EditText(this);
         fileName = new EditText(this);
-        filePath = new EditText(this);
 
         name = fileName.getText().toString();
-        path = filePath.getText().toString();
         url = fileUrl.getText().toString();
 
 
@@ -109,7 +116,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void findView() {
         test = findViewById(R.id.test);
         fileUrl = findViewById(R.id.edit_file_url);
-        filePath = findViewById(R.id.edit_file_path);
         fileName = findViewById(R.id.edit_file_name);
         progressBar = findViewById(R.id.progressBar);
         start = findViewById(R.id.test_start);
@@ -123,14 +129,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.test_start:
                 if (list != null) {
-                    if(list.lastIndexOf(MyApplication.getAutoMessage())==list.size()-1){
+                    Log.d("a","list:"+list.size());
+                    if (list.lastIndexOf(MyApplication.getAutoMessage()) == list.size() - 1) {
                         Toast.makeText(this, "Please add downloadMessage", Toast.LENGTH_SHORT).show();
-                    }
-                    else {
-                        downloadBinder.startDownload(list.get(list.size()-1));
+                    } else {
+                        downloadBinder.startDownload(list.get(list.size() - 1));
                         progressBar.setProgress(downloadBinder.updateProgress());
                     }
-
                 } else {
                     Toast.makeText(this, "Please add downloadMessage", Toast.LENGTH_SHORT).show();
                 }
@@ -218,11 +223,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(DialogInterface dialog, int which) {
         switch (which) {
             case DialogInterface.BUTTON_POSITIVE:
-                if (url.length() > 2 && name.length() > 2 && path.length() > 2) {
+                if (url.length() > 2 && name.length() > 2) {
                     DownloadMessage message = new DownloadMessage();
                     message.setDownloadURL(url);
                     message.setName(name);
-                    message.setPath(path);
                     if (list == null) {
                         list = new ArrayList<>();
                     }
@@ -237,12 +241,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         }
     }
+
     public static void openFile(Context context, DownloadMessage message) {
-        File f = new File(message.getName());
+        String path = message.getPath() + "/123.mp3";
+        Log.e("zzz",path);
+        File f = new File(path);
         Intent myIntent = new Intent(android.content.Intent.ACTION_VIEW);
-        String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
-        String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-        myIntent.setDataAndType(Uri.fromFile(f),mimetype);
+        Uri uri = Uri.parse(path);
+        myIntent.setDataAndType(uri,"audio/mp3");
+//        String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
+//        String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+//        myIntent.setDataAndType(Uri.fromFile(f), mimetype);
         context.startActivity(myIntent);
     }
 

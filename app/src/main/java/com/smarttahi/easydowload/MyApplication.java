@@ -19,8 +19,8 @@ public class MyApplication extends Application {
 
     public static DownloadMessage getAutoMessage(){
         DownloadMessage downloadMessage = new DownloadMessage();
-        downloadMessage.setPath("/storage/emulated/0/1/");
         downloadMessage.setDownloadURL("http://other.web.rh01.sycdn.kuwo.cn/resource/n2/25/67/2959040831.mp3");
+//        downloadMessage.setName("");
         downloadMessage.setName(downloadMessage.getDownloadURL());
         return downloadMessage;
     }

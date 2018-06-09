@@ -22,6 +22,7 @@ public class MyService extends Service {
     private DownloadBinder mBinder = new DownloadBinder();
     public DownloadTask downloadTask;
     public int currentProgress = 0;
+    private Listener lis;
 
 
     private DownloadTask.StateListener listener = new DownloadTask.StateListener() {
@@ -35,6 +36,7 @@ public class MyService extends Service {
         @Override
         public void onSuccess() {
             downloadTask = null;
+            if (lis != null) lis.onFinish();
             stopForeground(true);
             getNotificationManager().notify(1, getNotification("Download task is completed", -1));
             Toast.makeText(MyService.this, "Download task is completed", Toast.LENGTH_SHORT).show();
@@ -59,6 +61,8 @@ public class MyService extends Service {
 
         @Override
         public void onProgress(int progress) {
+            Log.e("progress","p:"+progress);
+            if (lis != null) lis.onDownload(progress);
             currentProgress = progress;
             getNotificationManager().notify(1, getNotification("Downloading", progress));
         }
@@ -102,10 +106,20 @@ public class MyService extends Service {
         return super.onUnbind(intent);
     }
 
+
+    public interface Listener{
+        void onFinish();
+        void onDownload(int progress);
+    }
     /**
      * 此类用于执行希望服务进行的操作（方法申明为public）
      */
     class DownloadBinder extends Binder {
+
+        public void setListener(Listener listener) {
+            lis = listener;
+        }
+
         public int updateProgress(){
             return currentProgress;
         }

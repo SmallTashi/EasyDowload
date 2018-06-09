@@ -9,4 +9,8 @@
 
     </style>
 
+    <style name="Progress" parent="Widget.AppCompat.ProgressBar.Horizontal">
+        <item name="android:background">@drawable/bg_pro</item>
+
+    </style>
 </resources>
