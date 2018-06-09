@@ -5,59 +5,69 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.File;
+
 
 public class MyService extends Service {
     private DownloadBinder mBinder = new DownloadBinder();
     public DownloadTask downloadTask;
+    public int currentProgress = 0;
 
 
     private DownloadTask.StateListener listener = new DownloadTask.StateListener() {
         @Override
         public void onPaused() {
-            downloadTask=null;
-            getNotificationManager().notify(1,getNotification("下载任务已暂停",-1));
-            Toast.makeText(MyService.this,"已暂停...",Toast.LENGTH_SHORT).show();
+            downloadTask = null;
+            getNotificationManager().notify(1, getNotification("Download task paused...", -1));
+            Toast.makeText(MyService.this, "Download task paused...", Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onSuccess() {
-            downloadTask=null;
+            downloadTask = null;
             stopForeground(true);
-            getNotificationManager().notify(1,getNotification("下载完成",-1));
-            Toast.makeText(MyService.this,"下载成功...",Toast.LENGTH_SHORT).show();
+            getNotificationManager().notify(1, getNotification("Download task is completed", -1));
+            Toast.makeText(MyService.this, "Download task is completed", Toast.LENGTH_SHORT).show();
+            MainActivity.openFile(MyService.this,MainActivity.list.get(MainActivity.list.size()-1));
         }
 
         @Override
         public void onFailed() {
-            downloadTask=null;
+            downloadTask = null;
             stopForeground(true);
-            getNotificationManager().notify(1,getNotification("下载失败",-1));
-            Toast.makeText(MyService.this,"下载失败...",Toast.LENGTH_SHORT).show();
+            getNotificationManager().notify(1, getNotification("Failed", -1));
+            Toast.makeText(MyService.this, "Failed", Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onCanceled() {
-            downloadTask=null;
-            getNotificationManager().notify(1,getNotification("下载任务已取消",-1));
-            Toast.makeText(MyService.this,"任务取消...",Toast.LENGTH_SHORT).show();
+            downloadTask = null;
+            getNotificationManager().notify(1, getNotification("Canceled", -1));
+            Toast.makeText(MyService.this, "Canceled", Toast.LENGTH_SHORT).show();
 
         }
 
         @Override
         public void onProgress(int progress) {
-            getNotificationManager().notify(1,getNotification("正在下载",progress));
+            currentProgress = progress;
+            getNotificationManager().notify(1, getNotification("Downloading", progress));
         }
     };
+
     public MyService() {
     }
+
+
 
     @Override
     public void onCreate() {
@@ -67,7 +77,7 @@ public class MyService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
+        //TODO 与bind谁执行下载任务
         //在启动Service的时候 所需要进行的操作
         Log.d("MyService", "onStartCommand executed");
         return super.onStartCommand(intent, flags, startId);
@@ -88,31 +98,38 @@ public class MyService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        Log.d("MyService","onUnbind");
+        Log.d("MyService", "onUnbind");
         return super.onUnbind(intent);
     }
 
-    /**此类用于执行希望服务进行的操作（方法申明为public）*/
-    class DownloadBinder extends Binder{
+    /**
+     * 此类用于执行希望服务进行的操作（方法申明为public）
+     */
+    class DownloadBinder extends Binder {
+        public int updateProgress(){
+            return currentProgress;
+        }
 
-        public void startDownload(DownloadMessage message){
-            if(downloadTask==null){
-                downloadTask = new DownloadTask(listener,message);
+        public void startDownload(DownloadMessage message) {
+            if (downloadTask == null) {
+                downloadTask = new DownloadTask(listener, message);
                 downloadTask.execute();
-                startForeground(1,getNotification("开始下载...",0));
-                Toast.makeText(MyService.this,"开始下载...",Toast.LENGTH_SHORT).show();
+                startForeground(1, getNotification("Begin download...", 0));
+                Toast.makeText(MyService.this, "Begin download...", Toast.LENGTH_SHORT).show();
+            } else {
+                downloadTask.execute();
             }
 
         }
 
-        public void pauseDownload(){
-            if(downloadTask!=null){
+        public void pauseDownload() {
+            if (downloadTask != null) {
                 downloadTask.PausedDownload();
             }
         }
 
-        public void cancelDownload(){
-            if(downloadTask != null){
+        public void cancelDownload() {
+            if (downloadTask != null) {
                 downloadTask.CanceledDownload();
             }
             getNotificationManager().cancel(1);
@@ -121,40 +138,40 @@ public class MyService extends Service {
     }
 
 
-
-
-    private Notification getNotification(String title,int progress){
-        Intent proIntent = new Intent(this,MainActivity.class);
-        PendingIntent pi=PendingIntent.getActivity(this,0,proIntent,0);
+    private Notification getNotification(String title, int progress) {
+        Intent proIntent = new Intent(this, MainActivity.class);
+        PendingIntent pi = PendingIntent.getActivity(this, 0, proIntent, 0);
 
         //点击通知的时候跳转到MainActivity
         NotificationCompat.Builder notification = new NotificationCompat.Builder(this);
 
         //更新通知，显示下载进度
-        if(progress>0){
-                    notification.setContentTitle(progress + "%")
-                    .setContentText(title)
-                    .setWhen(System.currentTimeMillis())
-                    .setSmallIcon(R.mipmap.seventeen)
-                    .setLargeIcon(BitmapFactory.decodeResource(getResources(),R.mipmap.thriteen))
-                    .setContentIntent(pi)
-                    .setProgress(100,progress,false)
-                    ;
-        }else {
+        if (progress > 0) {
             notification.setContentTitle(progress + "%")
                     .setContentText(title)
                     .setWhen(System.currentTimeMillis())
                     .setSmallIcon(R.mipmap.seventeen)
-                    .setLargeIcon(BitmapFactory.decodeResource(getResources(),R.mipmap.thriteen))
+                    .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.thriteen))
+                    .setContentIntent(pi)
+                    .setProgress(100, progress, false)
+            ;
+        } else {
+            notification.setContentTitle(progress + "%")
+                    .setContentText(title)
+                    .setWhen(System.currentTimeMillis())
+                    .setSmallIcon(R.mipmap.seventeen)
+                    .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.thriteen))
                     .setContentIntent(pi);
         }
         return notification.build();
     }
 
 
-    /**获得Notification的实例*/
-    public NotificationManager getNotificationManager(){
-        return (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+    /**
+     * 获得Notification的实例
+     */
+    public NotificationManager getNotificationManager() {
+        return (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
     }
 }
 

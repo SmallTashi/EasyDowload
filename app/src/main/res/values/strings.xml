@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">EasyDowload</string>
+    <string name="app_name">EasyDownload</string>
     <string name="service_start">Start</string>
     <string name="service_stop">Cancel</string>
     <string name="service_unbind">Pause</string>

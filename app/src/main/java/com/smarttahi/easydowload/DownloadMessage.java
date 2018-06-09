@@ -1,10 +1,10 @@
 package com.smarttahi.easydowload;
 
 public class DownloadMessage {
-    private String downloadURL ;
-    private String path;
-    private String name;
-    private long contentLen;
+    private String downloadURL = null ;
+    private String path = null;
+    private String name = null;
+    private long contentLen = 0;
 
     /*volatile :
     1.保证可见——当共享变量被volatile修饰时

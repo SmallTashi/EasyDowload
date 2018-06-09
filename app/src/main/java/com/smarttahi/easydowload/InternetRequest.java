@@ -12,7 +12,7 @@ import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
 
-class HttpsRequest {
+class InternetRequest {
 
     private static OutputStream out = null;
 
@@ -20,21 +20,39 @@ class HttpsRequest {
 
     private HttpURLConnection connectionHttp = null;
 
-    HttpsRequest(String downloadURL) throws MalformedURLException {
+    InternetRequest(String downloadURL) throws MalformedURLException {
         URL url = new URL(downloadURL);
-
         try {
             if (downloadURL.startsWith("https:"))
-
             {
                 connectionHttps = (HttpsURLConnection) url.openConnection();
-                
             } else {
                 connectionHttp = (HttpURLConnection) url.openConnection();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void beginDownload(DownloadMessage message, Callback callback) {
+        if (message.getContentLen() == 0) {
+            if(connectionHttp==null){
+                message.setContentLen(Long.parseLong(connectionHttps.getHeaderField("content-length")));
+                Download(connectionHttps,callback);
+            }else {
+                message.setContentLen(Long.parseLong(connectionHttp.getHeaderField("content-length")));
+                Download(connectionHttp,callback);
+            }
+        } else {
+            if(connectionHttp==null){
+                connectionHttps.setRequestProperty("Range", "bytes=" + message.getCompletedLen() + "-" + message.getContentLen());
+                Download(connectionHttps,callback);
+            }else {
+                connectionHttp.setRequestProperty("Range", "bytes=" + message.getCompletedLen() + "-" + message.getContentLen());
+                Download(connectionHttp,callback);
+            }
+        }
+
     }
 
     private void Download(final HttpURLConnection conn, final Callback callback) {
@@ -79,6 +97,7 @@ class HttpsRequest {
     }
 
 
+
     private void Download(final HttpsURLConnection conn, final Callback callback) {
         try {
             conn.setReadTimeout(5 * 1000);
@@ -120,16 +139,6 @@ class HttpsRequest {
                 }
             }
         }
-    }
-
-
-    public void beginDownload(DownloadMessage message, Callback callback) {
-        if (message.getContentLen() == 0) {
-            message.setContentLen(Long.parseLong(connectionHttps.getHeaderField("content-length")));
-        } else {
-            connectionHttps.setRequestProperty("Range", "bytes=" + message.getCompletedLen() + "-" + message.getContentLen());
-        }
-        Download(connectionHttps, callback);
     }
 
 

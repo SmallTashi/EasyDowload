@@ -17,20 +17,11 @@ public class MyApplication extends Application {
         return context;
     }
 
-
-    public static DownloadMessage getMessage() {
-        return message;
-    }
-
-    public static void setMessage(DownloadMessage message) {
-        MyApplication.message = message;
-    }
-
     public static DownloadMessage getAutoMessage(){
         DownloadMessage downloadMessage = new DownloadMessage();
-        downloadMessage.setPath("/storage/emulated/0/1"+"temp");
-        downloadMessage.setDownloadURL("http://image.coolapk.com/apk_image/2017/0906/efc629db13374722fb11ea966b09022e-for-158877-o_1bpb511hu1sa41hnis2haif123o1f-uid-1124262.png.t.jpg");
-        downloadMessage.setName("tempFile");
+        downloadMessage.setPath("/storage/emulated/0/1/");
+        downloadMessage.setDownloadURL("http://other.web.rh01.sycdn.kuwo.cn/resource/n2/25/67/2959040831.mp3");
+        downloadMessage.setName(downloadMessage.getDownloadURL());
         return downloadMessage;
     }
 }

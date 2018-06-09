@@ -1,11 +1,14 @@
 package com.smarttahi.easydowload;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -23,8 +26,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener,DialogInterface.OnClickListener {
-    private MyService.DownloadBinder downloadBinder ;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, DialogInterface.OnClickListener {
+    private MyService.DownloadBinder downloadBinder;
     private FloatingActionButton ChangeState;
     private int currentProgress;
     private EditText fileName;
@@ -32,13 +39,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private EditText fileUrl;
     private ProgressBar progressBar;
     private TextView cancel;
-   private TextView start;
-   private TextView test;
+    private TextView start;
+    private TextView test;
     private TextView pause;
     private String name = "";
     private String path = "";
     private String url = "";
 
+    public static List<DownloadMessage> list = null;
     AlertDialog.Builder builder;
 
     @Override
@@ -55,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            downloadBinder = (MyService.DownloadBinder)service;
+            downloadBinder = (MyService.DownloadBinder) service;
         }
 
         @Override
@@ -67,14 +75,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        int permission = ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        if(permission==PackageManager.PERMISSION_DENIED){
-            ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+        int permission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (permission == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         }
         findView();
         builder = new AlertDialog.Builder(this);
 
-        Intent intent = new Intent(this,MyService.class);
+        Intent intent = new Intent(this, MyService.class);
         startService(intent);
         bindService(intent, connection, BIND_AUTO_CREATE);    //绑定服务
 
@@ -82,8 +90,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fileName = new EditText(this);
         filePath = new EditText(this);
 
-        name =fileName.getText().toString();
-        path =filePath.getText().toString();
+        name = fileName.getText().toString();
+        path = filePath.getText().toString();
         url = fileUrl.getText().toString();
 
 
@@ -93,18 +101,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         test.setOnClickListener(this);
         pause.setOnClickListener(this);
         cancel.setOnClickListener(this);
-        progressBar.setProgress(currentProgress);
-        if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         }
     }
 
-    private void findView(){
-        test =findViewById(R.id.test);
+    private void findView() {
+        test = findViewById(R.id.test);
         fileUrl = findViewById(R.id.edit_file_url);
-        filePath =findViewById(R.id.edit_file_path);
+        filePath = findViewById(R.id.edit_file_path);
         fileName = findViewById(R.id.edit_file_name);
-        progressBar=findViewById(R.id.progressBar);
+        progressBar = findViewById(R.id.progressBar);
         start = findViewById(R.id.test_start);
         ChangeState = findViewById(R.id.floatingActionButton);
         pause = findViewById(R.id.test_pause);
@@ -114,42 +121,46 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-
             case R.id.test_start:
-                if(MyApplication.getMessage()!=null){
-                    downloadBinder.startDownload(MyApplication.getMessage());
-                }
-                else {
-                    Toast.makeText(this,"Please add downloadMessage",Toast.LENGTH_SHORT).show();
-                }
+                if (list != null) {
+                    if(list.lastIndexOf(MyApplication.getAutoMessage())==list.size()-1){
+                        Toast.makeText(this, "Please add downloadMessage", Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        downloadBinder.startDownload(list.get(list.size()-1));
+                        progressBar.setProgress(downloadBinder.updateProgress());
+                    }
 
+                } else {
+                    Toast.makeText(this, "Please add downloadMessage", Toast.LENGTH_SHORT).show();
+                }
                 break;
-
             case R.id.test:
+                Toast.makeText(this, "Execute auto download", Toast.LENGTH_SHORT).show();
+                list = new ArrayList<>();
+                list.add(MyApplication.getAutoMessage());
                 downloadBinder.startDownload(MyApplication.getAutoMessage());
+                progressBar.setProgress(downloadBinder.updateProgress());
                 break;
             case R.id.test_pause:
-                if(MyApplication.getMessage()==null){
-                    Toast.makeText(this,"Please add downloadMessage",Toast.LENGTH_SHORT).show();
-                }else {
+                if (list == null) {
+                    Toast.makeText(this, "Please add downloadMessage", Toast.LENGTH_SHORT).show();
+                } else {
                     downloadBinder.pauseDownload();
                 }
-
                 break;
             case R.id.test_cancel:
-                if(MyApplication.getMessage()==null){
-                    Toast.makeText(this,"Please add downloadMessage",Toast.LENGTH_SHORT).show();
-
-                }else {
+                if (list == null) {
+                    Toast.makeText(this, "Please add downloadMessage", Toast.LENGTH_SHORT).show();
+                } else {
                     downloadBinder.cancelDownload();
                 }
-
                 break;
             case R.id.floatingActionButton:
                 Toast.makeText(this, "Add", Toast.LENGTH_SHORT).show();
                 builder.setView(R.layout.input_dialog)
-                        .setPositiveButton(R.string.Do,this)
-                        .setNegativeButton(R.string.Cancel,this)
+                        .setPositiveButton(R.string.Do, this)
+                        .setNegativeButton(R.string.Cancel, this)
                         .create();
                 builder.show();
             default:
@@ -159,14 +170,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode){
+        switch (requestCode) {
             case 1:
-                if(grantResults.length>0&&grantResults[0]!=PackageManager.PERMISSION_GRANTED){
-                    Toast.makeText(this,"拒绝权限将无法使用程序",Toast.LENGTH_LONG).show();
+                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "拒绝权限将无法使用程序", Toast.LENGTH_LONG).show();
                     finish();
                 }
                 break;
-                default:
+            default:
         }
     }
 
@@ -205,25 +216,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(DialogInterface dialog, int which) {
-        switch (which){
+        switch (which) {
             case DialogInterface.BUTTON_POSITIVE:
-                if(url!=null&&name!=null&&path!=null) {
-                    if (MyApplication.getMessage() == null) {
-                        DownloadMessage message = new DownloadMessage();
-                        message.setDownloadURL(url);
-                        message.setName(name);
-                        message.setPath(path);
-                        MyApplication.setMessage(message);
-                    }else {
-                        downloadBinder.startDownload(MyApplication.getMessage());
+                if (url.length() > 2 && name.length() > 2 && path.length() > 2) {
+                    DownloadMessage message = new DownloadMessage();
+                    message.setDownloadURL(url);
+                    message.setName(name);
+                    message.setPath(path);
+                    if (list == null) {
+                        list = new ArrayList<>();
                     }
-                }else {
-                    Toast.makeText(this,"Please complete downloadMessage",Toast.LENGTH_SHORT).show();
+                    list.add(message);
+                    downloadBinder.startDownload(list.get(list.lastIndexOf(message)));
+                } else {
+                    Toast.makeText(this, "Please complete downloadMessage", Toast.LENGTH_SHORT).show();
                 }
                 break;
-                case DialogInterface.BUTTON_NEGATIVE:
-                    Toast.makeText(this,"Cancel downloadTask",Toast.LENGTH_SHORT).show();
+            case DialogInterface.BUTTON_NEGATIVE:
+                Toast.makeText(this, "Cancel downloadTask", Toast.LENGTH_SHORT).show();
 
         }
     }
+    public static void openFile(Context context, DownloadMessage message) {
+        File f = new File(message.getName());
+        Intent myIntent = new Intent(android.content.Intent.ACTION_VIEW);
+        String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
+        String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        myIntent.setDataAndType(Uri.fromFile(f),mimetype);
+        context.startActivity(myIntent);
+    }
+
 }

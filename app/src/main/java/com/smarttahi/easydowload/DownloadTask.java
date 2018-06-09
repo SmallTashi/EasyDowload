@@ -32,6 +32,9 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
     }
 
 
+    /**
+     * 此方法运行在UI线程中，可更新UI
+     * */
     @Override
     protected void onProgressUpdate(Integer... values) {
         int progress = values[0];
@@ -40,6 +43,11 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
             lastProgress = progress;
         }
     }
+
+    /**
+     * 在doInBackground 执行完之后运行
+     * 并运行在UI线程中，可更新UI
+     * */
 
     @Override
     protected void onPostExecute(Integer status) {
@@ -99,7 +107,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
         }else if(message.getContentLen()==message.getCompletedLen()){
             return SUCCESS;
         }else {
-            file = new File(message.getPath() + message.getName());
+            file = new File(message.getName());
             byte[] buffer = new byte[1024 * 2];
             try {
                 saveFile = new RandomAccessFile(file, "rwd");
@@ -159,10 +167,10 @@ public class DownloadTask extends AsyncTask<String, Integer, Integer> {
 
     protected Integer doInBackground(String... strings) {
 
-        HttpsRequest request = null;
+        InternetRequest request;
         try {
-            request = new HttpsRequest(message.getDownloadURL());
-            request.beginDownload(message, new HttpsRequest.Callback() {
+            request = new InternetRequest(message.getDownloadURL());
+            request.beginDownload(message, new InternetRequest.Callback() {
                 @Override
                 public void onSuccess(InputStream inputStream) {
                     status= saveFile(inputStream);
